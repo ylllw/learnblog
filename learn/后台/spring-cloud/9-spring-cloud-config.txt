@@ -1,0 +1,100 @@
+一、service
+1.pom文件
+<dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-config-server</artifactId>
+        </dependency>
+    </dependencies>
+2.启动类
+@EnableConfigServer
+3.配置文件
+spring:
+  application:
+    name: demo-config-server 
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/ylllw/spring-cloud-demo/
+          searchPaths: config
+          username:
+          password:
+      label: master
+
+
+server:
+  port: 8006
+
+应注意 spring.application.name:属性名必须和git中的config文件同名。
+spring.cloud.config.server.git.uri:属性是git的config文件仓库
+spring.cloud.config.server.git.searchPaths:属性是config文件的根目录
+spring.cloud.config.label:属性指分支
+
+二、client
+1.pom文件
+<dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+    </dependencies>
+2.配置文件
+spring:
+  application:
+    name: config-client
+  cloud:
+    config:
+      label: master
+      profile: dev
+      uri: http://localhost:8006/
+此处注意，配置文件名为bootstrap.yml,bootstrap.yml在application.yml之前执行，如果使用application.yml会报错无法启动项目
+3.在代码中使用
+@Value("${foo}")
+    String foo;
+
+三、高可用的分布式配置中心
+1.创建Eureka-server用于注册config-server。
+2.在config-server和confng-client的pom文件中添加依赖
+ <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+3.在config-server和config-client的入口类中加注解
+@EnableEurekaClient
+@EnableDiscoveryClient
+4.修改Config-server配置文件
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8008/eureka/
+5.修改congif-client配置文件
+spring:
+  application:
+    name: config-client
+  cloud:
+    config:
+      label: master
+      profile: dev
+      discovery:
+        enabled: true
+        serviceId: demo-config-server
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8008/eureka/
+server:
+  port: 8007
+
+应注意，spring.cloud.config.discovery.enabled为true表示使用配置中心的配置。
+        spring.cloud.config.discovery.serviceId: 为配置中心服务名称
+
+

@@ -1,0 +1,13 @@
+1.pom导入依赖
+<dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+2.启动类加注解
+@EnableHystrix
+3.创建熔断调用的方法
+ public String error(String name){
+        return "error "+name;
+    }
+4.service接口方法上加注解
+@HystrixCommand(fallbackMethod = "error")

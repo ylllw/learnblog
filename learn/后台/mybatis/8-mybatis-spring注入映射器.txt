@@ -1,0 +1,26 @@
+1.注入映射器
+<bean id="fooService" class="org.mybatis.spring.sample.service.FooServiceImpl">
+  <constructor-arg ref="userMapper" />
+</bean>
+注入完毕后可以在代码中直接使用，不需要管他的创建打开关闭session
+2.注册映射器
+配置方法上有区别
+XML配置：
+<bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+  <property name="mapperInterface" value="org.mybatis.spring.sample.mapper.UserMapper" />
+  <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+</bean>
+Java配置：
+@Bean
+public MapperFactoryBean<UserMapper> userMapper() throws Exception {
+  MapperFactoryBean<UserMapper> factoryBean = new MapperFactoryBean<>(UserMapper.class);
+  factoryBean.setSqlSessionFactory(sqlSessionFactory());
+  return factoryBean;
+}
+3.发现映射器
+不需要一个个注册，可以自动扫描
+有三种方法自动扫描：
+1.<mybatis:scan/>： <mybatis:scan base-package="org.mybatis.spring.sample.mapper" />
+2.@MapperScan @MapperScan("org.mybatis.spring.sample.mapper")
+3.在spring配置文件中注册MapperScannerConfigurer
+

@@ -1,0 +1,34 @@
+1.v-if：<p v-if="seen">现在你看到我了</p>
+根据seen的值决定p标签是否显示
+2.v-else
+<div id="app">
+    <div v-if="Math.random() > 0.5">
+      Sorry
+    </div>
+    <div v-else>
+      Not sorry
+    </div>
+</div>
+    
+<script>
+new Vue({
+  el: '#app'
+})
+</script>
+3.v-else-if
+<div id="app">
+    <div v-if="type === 'A'">
+      A
+    </div>
+    <div v-else-if="type === 'B'">
+      B
+    </div>
+    <div v-else-if="type === 'C'">
+      C
+    </div>
+    <div v-else>
+      Not A/B/C
+    </div>
+</div>
+4.v-show和v-if差不多
+<h1 v-show="ok">Hello!</h1>

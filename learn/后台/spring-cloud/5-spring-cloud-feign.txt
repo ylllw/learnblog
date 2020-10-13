@@ -1,0 +1,40 @@
+1.pom文件导入依赖
+<dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+</dependencies>
+2.配置文件
+server:
+  port: 8004
+
+spring:
+  application:
+    name: demo-feign
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8000/eureka
+	  
+3.启动类加注解
+@EnableDiscoveryClient
+@EnableEurekaClient
+@EnableFeignClients
+
+4.接口加注解
+@FeignClient(value = "demo2")
+
+5.接口方法加注解
+ @RequestMapping(value="hello",method= RequestMethod.GET)
+ 
+6.controller中注入接口，直接调用方法。

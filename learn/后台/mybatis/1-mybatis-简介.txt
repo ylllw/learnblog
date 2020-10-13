@@ -1,0 +1,29 @@
+1.从XML中构建SqlSessionFactory
+每个基于MyBatis的应用都是以一个SqlSessionFactory的实例为核心的。
+SqlSessionFactory的实例可以通过SqlSessionFactoryBuilder获得。
+而SqlSessionFactoryBuilder则可以从XML配置文件或一个预先配置的Configuration实例来构建出SqlSessionFactory实例。
+这种方式是通过配置文件获取SqlSessionFactory
+String resource="org/mybatis/example/mybatis-config.xml";
+InputStream inputStream=Resources.getResourceAsStream(resource);
+SqlSessionFactory sqlSessionFactory=new SqlSessionFactoryBuilder().builder(inputStream);
+这种方式是通过java代码构建SqlSessionFactory
+DataSource dataSource = BlogDataSourceFactory.getBlogDataSource();
+TransactionFactory transactionFactory = new JdbcTransactionFactory();
+Environment environment = new Environment("development", transactionFactory, dataSource);
+Configuration configuration = new Configuration(environment);
+configuration.addMapper(BlogMapper.class);
+SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
+------------------------------------------
+2.从SqlSessionFactory中获取SqlSession
+可以通过两种方式获取：
+1.
+try(SqlSession session = sqlSessionFactory.openSession()){
+    Blog b=session.selectOne("org.mybatis.example.BlogMapper.selectBlog",101);
+}
+2.
+try(SqlSession session=SqlSessionFactory.openSession()){
+    BlogMapper mapper=session.getMapper(BlogMapper.class);
+    Blog blog = mapper.selectBlog(101);
+
+}
+推荐第二种写法。

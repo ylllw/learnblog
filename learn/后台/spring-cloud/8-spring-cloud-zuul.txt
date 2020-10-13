@@ -1,0 +1,85 @@
+1.pom文件
+<dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+        </dependency>
+    </dependencies>
+2.配置文件
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+server:
+  port: 8769
+spring:
+  application:
+    name: service-zuul
+zuul:
+  routes:
+    api-a:
+      path: /api-a/**
+      serviceId: service-ribbon
+    api-b:
+      path: /api-b/**
+      serviceId: service-feign
+3.启动类
+@EnableZuulProxy
+@EnableEurekaClient
+@EnableDiscoveryClient
+
+此时zuul已经可以起到路由的作用
+
+4.服务过滤
+@Component
+public class MyFilter extends ZuulFilter {
+
+    private static Logger log = LoggerFactory.getLogger(MyFilter.class);
+    @Override
+    //返回一个字符串代表过滤器类型
+    //pre路由之前
+    //routing路由之时
+    //post路由之后
+    //error发送错误调用
+    public String filterType() {
+        return "pre";
+    }
+    //过滤的顺序
+    @Override
+    public int filterOrder() {
+        return 0;
+    }
+    //可以写逻辑判断是否过滤，true为过滤
+    @Override
+    public boolean shouldFilter() {
+        return true;
+    }
+    //过滤器具体逻辑
+    @Override
+    public Object run() {
+        RequestContext ctx = RequestContext.getCurrentContext();
+        HttpServletRequest request = ctx.getRequest();
+        log.info(String.format("%s >>> %s", request.getMethod(), request.getRequestURL().toString()));
+        Object accessToken = request.getParameter("token");
+        if(accessToken == null) {
+            log.warn("token is empty");
+            ctx.setSendZuulResponse(false);
+            ctx.setResponseStatusCode(401);
+            try {
+                ctx.getResponse().getWriter().write("token is empty");
+            }catch (Exception e){}
+
+            return null;
+        }
+        log.info("ok");
+        return null;
+    }
+}

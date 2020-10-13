@@ -1,0 +1,111 @@
+1.if
+<select id="findActiveBlogWithTitleLike"
+     resultType="Blog">
+  SELECT * FROM BLOG
+  WHERE state = ‘ACTIVE’
+  <if test="title != null">
+    AND title like #{title}
+  </if>
+  <if test="author != null and author.name != null">
+    AND author_name like #{author.name}
+  </if>
+</select>
+就是if条件，条件满足就拼接sql
+
+2，choose、when、otherwise
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG WHERE state = ‘ACTIVE’
+  <choose>
+    <when test="title != null">
+      AND title like #{title}
+    </when>
+    <when test="author != null and author.name != null">
+      AND author_name like #{author.name}
+    </when>
+    <otherwise>
+      AND featured = 1
+    </otherwise>
+  </choose>
+</select>
+那个满足拼接哪个，都不满足拼接otherwise
+
+3.trim、where、set
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG
+  WHERE
+  <if test="state != null">
+    state = #{state}
+  </if>
+  <if test="title != null">
+    AND title like #{title}
+  </if>
+  <if test="author != null and author.name != null">
+    AND author_name like #{author.name}
+  </if>
+</select>
+当上面这个例子的if条件都不满足是，sql语句会报错。
+这个时候用where标签代替写死的where
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG
+  <where>
+    <if test="state != null">
+         state = #{state}
+    </if>
+    <if test="title != null">
+        AND title like #{title}
+    </if>
+    <if test="author != null and author.name != null">
+        AND author_name like #{author.name}
+    </if>
+  </where>
+</select>
+where会在有满足条件的情况下插入where而且，如果子句以and或or 开头，where会自动给他去掉。
+同时也可以通过trim元素定制where功能。
+和where等价的trim
+<trim prefix="WHERE" prefixOverrides="AND |OR ">
+  ...
+</trim>
+
+set元素用于动态更新语句
+<update id="updateAuthorIfNecessary">
+  update Author
+    <set>
+      <if test="username != null">username=#{username},</if>
+      <if test="password != null">password=#{password},</if>
+      <if test="email != null">email=#{email},</if>
+      <if test="bio != null">bio=#{bio}</if>
+    </set>
+  where id=#{id}
+</update>
+该案例中，set会在行首插入set关键字，并删除额外的逗号
+与set等价的trim
+<trim prefix="SET" suffixOverrides=",">
+  ...
+</trim> 
+4. foreach
+遍历集合
+<select id="selectPostIn" resultType="domain.blog.Post">
+  SELECT *
+  FROM POST P
+  WHERE ID in
+  <foreach item="item" index="index" collection="list"
+      open="(" separator="," close=")">
+        #{item}
+  </foreach>
+</select>
+5.scritp
+如果要在注解中使用动态sql可以用script包裹
+  @Update({"<script>",
+      "update Author",
+      "  <set>",
+      "    <if test='username != null'>username=#{username},</if>",
+      "    <if test='password != null'>password=#{password},</if>",
+      "    <if test='email != null'>email=#{email},</if>",
+      "    <if test='bio != null'>bio=#{bio}</if>",
+      "  </set>",
+      "where id=#{id}",
+      "</script>"})
+    void updateAuthorValues(Author author);

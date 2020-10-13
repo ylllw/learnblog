@@ -1,0 +1,7 @@
+1.docker hub
+在docker hub注册后
+通过docker login 登录
+通过docker logout退出
+通过docker search ubuntu 搜索镜像
+通过docker pull ubuntu 拉取镜像
+用户登录后，可以通过docker push 将镜像推送到docker hub

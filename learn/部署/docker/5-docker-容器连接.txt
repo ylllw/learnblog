@@ -1,0 +1,37 @@
+1.指定IP地址
+docker run -d -p 127.0.0.1:5001:5000 training/webapp python app.py
+默认绑定的都是tcp端口，也可以指定udp
+docker run -d -p 127.0.0.1:5001:5000/udp training/webapp python app.py
+
+2.docker容器互联
+--1.容器命名：创建一个容器时，docker会自动命名，我们可以使用--name主动命名
+docker run -d -P --name myweb training/webapp python app.py
+--2.新建网络
+创建一个新的docker网络
+docker network create -d bridge test-net
+-d指定网络类型bridge或overlay
+docker network ls 查看docker网络
+--3.连接容器
+运行一个容器并连接到新建的test-net网络
+docker run -itd --name test1 --network test-net ubuntu /bin/bash
+docker run -itd --name test2 --network test-net ubuntu /bin/bash
+让test1和test2相互ping，如果没有安装ping可以在一个容器中安装后提交容器到镜像，在以新的镜像运行两个容器。
+如果有多个容器需要互联推荐使用docker compose
+
+3.配置DNS
+在宿主机的/etc/docker/daemon.json文件中增加下面内容来设置全部容器的dns
+{
+  "dns" : [
+    "114.114.114.114",
+    "8.8.8.8"
+  ]
+}
+设置完毕后需要重启docker
+docker run -it --rm ubuntu cat etc/resolv.conf 改命令可以查看容器DNS
+手动设置容器dns
+docker run -it  --rm -h host_ubuntu --dns=114.114.114.114   --dns-search=test.com ubuntu
+--rm:容器退出时自动清理容器内部文件系统
+-h host_ubuntu 或 --hostname=host_ubuntu ：设定容器主机名，它会被写到容器的/etc/hostname和/etc/hosts
+--dns=144.144.144.144 ：添加dns到容器的/etc/resolv.conf中让容器用这个服务来解析所有不在/etc/hosts中的主机名
+--dns-search=test.com : 设定容器搜索域，当搜索域设定为example.com时，在搜索一个名为host的主机时，DNS不仅搜索host，还会搜索host.example.com
+如果容器启动时没有设置--dns和--dns-search 则会按照宿主机上的/etc/resolv.conf来配置容器的DNS

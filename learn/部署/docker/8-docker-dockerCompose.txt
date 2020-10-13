@@ -1,0 +1,38 @@
+1.简介
+docker compose是用于定义和运行多容器docker应用程序的工具。通过compose，可以使用yml文件来配置应用程序所需要的所有服务。
+然后使用一个命令，就可以从yml文件配置中创建并启动所有服务。
+docker compose 使用的3个步骤：
+--1.使用dockerfile定义应用程序的环境。
+--2.使用docker-compose.yml定义构成应用程序的服务，这样他们可以在隔离环境中一起运行。
+--3.执行docker-compose up 命令来启动并运行整个应用程序
+# yaml 配置实例
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+   - "5000:5000"
+    volumes:
+   - .:/code
+    - logvolume01:/var/log
+    links:
+   - redis
+  redis:
+    image: redis
+volumes:
+  logvolume01: {}
+
+2.compose 安装
+下载compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+赋权限
+sudo chmod +x /usr/local/bin/docker-compose
+创建软链
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+查看是否安装成功
+docker-compose --version
+
+3.compose使用
+--1.准备
+创建一个测试目录
+

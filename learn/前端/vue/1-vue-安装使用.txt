@@ -1,0 +1,6 @@
+1.npm install --global vue-cli //全局安装vue-cli
+2.vue init webpack my-project //创建一个基于webpack模板的新项目
+3.回车
+4.cd my-project //进入项目目录
+5.npm install //安装项目
+6.npm run dev //运行项目
