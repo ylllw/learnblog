@@ -1,0 +1,17 @@
+1.查看是否安装docker
+yum list installed | grep docker
+2.卸载已安装的docker
+yum remove docker
+yum remove docker-common
+...
+3.设置仓库
+yum install -y yum-utils
+yum install -y device-mapper-persistent-data
+yum install -y lvm2
+
+4.设置稳定仓库
+yum-config-manager --add-repo  http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+5.安装docker engine-community
+sudo yum install docker-ce docker-ce-cli containerd.io
+

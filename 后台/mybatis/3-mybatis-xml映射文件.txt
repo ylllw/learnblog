@@ -1,0 +1,440 @@
+1.select
+<select id="selectPerson" parameterType="int" resultType="hashmap">
+    select * from person where id=#{id}
+</select>
+一个简单的根据id查询person的接口就完成了
+parameterType表示接受的参数类型。
+resultType表示返回的参数类型
+
+select参数说明
+<select id="selectPerson" 接口唯一名称
+        parameterType="int" 传入的参数类型
+        resultType="hashmap" 返回的参数类型，不能与resultMap同时使用
+        resultMap="personResultMap" 返回的参数类型，可以自定义字段映射。
+        flushCache="false" 调用该语句后是否清空本地缓存和二级缓存默认false，true为清空
+        useCache="true" 该语句的结果被二级缓存缓存起来，select元素默认true
+        timeout="10" 抛出异常前，等待数据库返回请求结果的秒数。默认值是未设置。依赖数据库驱动。
+        fetchSize="256" 返回请求结果的行数，依赖驱动。
+        statementType="PREPARED"
+        resultSetType="FORWARD_ONLY" >
+statementType="PREPARED"预处理 将参数进行编译 表示#{id} 在sql中会被?代替。select * from TB_A where id=#{id} 会变成select * from TB_A where id=?
+             ="STATEMENT"直接拼接sql不进行编译${id}。select * from TB_A where id=${id} 会变成select * from TB_A where id='2'。但是这么做的好处在于可以select * from TB_A where ${idname}=${idvalue}
+             ="CALLABLE"执行存储过程
+2.insert
+<insert id="insertAuthor"
+        parameterType="domain.blog.Author"
+        flushCache="true"
+        statementType="PREPARED"
+        keyProperty="" 和userGeneratedKeys配合使用，指定对象的哪个字段是自增主键，多个字段用逗号分隔
+        keycolumn=""    和userGeneratedKeys配合使用，指定数据库中自增主键的列名。
+        useGeneratedKeys=""仅适用于insert和update ，这会使该方法返回自增主键。默认false
+        timeout="20">
+<insert id="insertAuthor">
+  insert into Author (id,username,password,email,bio)
+  values (#{id},#{username},#{password},#{email},#{bio})
+</insert>
+
+3.update
+<update id="updateAuthor"
+        parameterType="domain.blog.Author"
+        flushCache="true"
+        statementType="PREPARED"
+        timeout="20">
+<update id="updateAuthor">
+  update Author set
+    username = #{username},
+    password = #{password},
+    email = #{email},
+    bio = #{bio}
+  where id = #{id}
+</update>
+
+
+4.delete
+<delete id="deleteAuther"
+        parameterType="domain.blog.Author"
+        flushCache="true"
+        statementType="PREPARED"
+        timeout="">
+
+<delete id="deleteAuthor">
+  delete from Author where id = #{id}
+</delete>
+        
+5.sql
+该元素可以用来定义可重用的SQL代码片段，以便在其他语句中使用。参数可以静态的确定，并可以在不同的include元素中定义不同的参数值。
+<sql id="userColumns" > ${alias}.id ,${alias}.username,${alias}.password </sql>
+
+<select id="selectUsers" resultType="map">
+    select
+        <include refid="userColumns"><property name="alias" value="t1" /></include>
+        <include refid="userColumns"><property name="alias" value="t2" /></include>
+    from TABLE t1 cross join TABLE t2    
+</select>
+也可以在include元素的refid属性或内部语句中使用属性值。
+<sql id="sometable">
+  ${prefix}Table
+</sql>
+
+<sql id="someinclude">
+  from
+    <include refid="${include_target}"/>
+</sql>
+
+<select id="select" resultType="map">
+  select
+    field1, field2, field3
+  <include refid="someinclude">
+    <property name="prefix" value="Some"/>
+    <property name="include_target" value="sometable"/>
+  </include>
+</select>
+
+6.结果映射resultMap
+当数据库字段名和类名不匹配时可以使用下面的方式，这种方式就是隐式的resultMap
+<select id="selectUsers" resultType="User">
+  select
+    user_id             as "id",
+    user_name           as "userName",
+    hashed_password     as "hashedPassword"
+  from some_table
+  where id = #{id}
+</select>
+也可以使用resultMap声明的方式
+<resultMap id="userResultMap" type="User">
+  <id property="id" column="user_id" />
+  <result property="username" column="user_name"/>
+  <result property="password" column="hashed_password"/>
+</resultMap>
+<select id="selectUsers" resultMap="userResultMap">
+  select user_id, user_name, hashed_password
+  from some_table
+  where id = #{id}
+</select>
+
+7.高级结果映射
+<select id="selectBlogDetails" resultMap="detailedBlogResultMap">
+  select
+       B.id as blog_id,
+       B.title as blog_title,
+       B.author_id as blog_author_id,
+       A.id as author_id,
+       A.username as author_username,
+       A.password as author_password,
+       A.email as author_email,
+       A.bio as author_bio,
+       A.favourite_section as author_favourite_section,
+       P.id as post_id,
+       P.blog_id as post_blog_id,
+       P.author_id as post_author_id,
+       P.created_on as post_created_on,
+       P.section as post_section,
+       P.subject as post_subject,
+       P.draft as draft,
+       P.body as post_body,
+       C.id as comment_id,
+       C.post_id as comment_post_id,
+       C.name as comment_name,
+       C.comment as comment_text,
+       T.id as tag_id,
+       T.name as tag_name
+  from Blog B
+       left outer join Author A on B.author_id = A.id
+       left outer join Post P on B.id = P.blog_id
+       left outer join Comment C on P.id = C.post_id
+       left outer join Post_Tag PT on PT.post_id = P.id
+       left outer join Tag T on PT.tag_id = T.id
+  where B.id = #{id}
+</select>
+
+<resultMap id="detailedBlogResultMap" type="Blog">
+<!--构造方法-->
+  <constructor>
+    <idArg column="blog_id" javaType="int"/>
+  </constructor>
+<!--构造方法-->
+  <result property="title" column="blog_title"/>
+<!--关联-->
+  <association property="author" javaType="Author">
+    <id property="id" column="author_id"/>
+    <result property="username" column="author_username"/>
+    <result property="password" column="author_password"/>
+    <result property="email" column="author_email"/>
+    <result property="bio" column="author_bio"/>
+    <result property="favouriteSection" column="author_favourite_section"/>
+  </association>
+<!--关联-->
+<!--集合-->
+  <collection property="posts" ofType="Post">
+    <id property="id" column="post_id"/>
+    <result property="subject" column="post_subject"/>
+    <association property="author" javaType="Author"/>
+    <collection property="comments" ofType="Comment">
+      <id property="id" column="comment_id"/>
+    </collection>
+    <collection property="tags" ofType="Tag" >
+      <id property="id" column="tag_id"/>
+    </collection>
+    <!--鉴别器-->
+    <discriminator javaType="int" column="draft">
+      <case value="1" resultType="DraftPost"/>
+    </discriminator>
+    <!--鉴别器-->
+  </collection>
+  <!--集合-->
+</resultMap>
+
+--constructor标签
+<constructor>
+   <idArg column="id" javaType="int"/>
+   <arg column="username" javaType="String"/>
+   <arg column="age" javaType="_int"/>
+</constructor>
+对应构造方法
+public class User {
+   //...
+   public User(Integer id, String username, int age) {
+     //...
+  }
+//...
+}
+也可以通过name指定对应的参数
+<constructor>
+   <idArg column="id" javaType="int" name="id" />
+   <arg column="age" javaType="_int" name="age" />
+   <arg column="username" javaType="String" name="username" />
+</constructor>
+
+--association标签
+<association property="author" column="blog_author_id" javaType="Author">
+  <id property="id" column="author_id"/>
+  <result property="username" column="author_username"/>
+</association>
+关联有两种加载方式：
+嵌套select查询：通过执行另一个sql映射语句来加载期望的复杂类型。
+<resultMap id="blogResult" type="Blog">
+  <association property="author" column="author_id" javaType="Author" select="selectAuthor"/>
+</resultMap>
+
+<select id="selectBlog" resultMap="blogResult">
+  SELECT * FROM BLOG WHERE ID = #{id}
+</select>
+
+<select id="selectAuthor" resultType="Author">
+  SELECT * FROM AUTHOR WHERE ID = #{id}
+</select>
+这种方式虽然简单但是但是性能不佳，被称为N+1查询问题，N+1查询问题是指当你执行了一个单独的sql来获取一个结果的列表（就是+1），
+对列表返回的每条记录，执行一个select查询语句来为每条记录加载详细信息就是N，会导致执行好多sql语句，所以就使用另外一种方法。
+
+嵌套结果映射：使用嵌套的结果映射来处理连接结果的重复子集。
+<select id="selectBlog" resultMap="blogResult">
+  select
+    B.id            as blog_id,
+    B.title         as blog_title,
+    B.author_id     as blog_author_id,
+    A.id            as author_id,
+    A.username      as author_username,
+    A.password      as author_password,
+    A.email         as author_email,
+    A.bio           as author_bio
+  from Blog B left outer join Author A on B.author_id = A.id
+  where B.id = #{id}
+</select>
+<resultMap id="blogResult" type="Blog">
+  <id property="id" column="blog_id" />
+  <result property="title" column="blog_title"/>
+  <association property="author" column="blog_author_id" javaType="Author" resultMap="authorResult"/>
+</resultMap>
+<resultMap id="authorResult" type="Author">
+  <id property="id" column="author_id"/>
+  <result property="username" column="author_username"/>
+  <result property="password" column="author_password"/>
+  <result property="email" column="author_email"/>
+  <result property="bio" column="author_bio"/>
+</resultMap>
+定义别名方便resultMap对应，将返回结果设置为blogResult,在blogResult中用authorResult映射author的返回结果。
+很重要的一点是，在嵌套结果映射中，应该总是指定一个或多个可以唯一标识结果的属性（也就是主键），虽然不指定也能正常工作，但是性能很差。
+上面的例子中authorResult是可以被重用的，如果不需要重用它，可以和blogResult写到一起，这种方式和上面的方式是等效的。
+<resultMap id="blogResult" type="Blog">
+  <id property="id" column="blog_id" />
+  <result property="title" column="blog_title"/>
+  <association property="author"  javaType="Author" >
+    <id property="id" column="author_id"/>
+    <result property="username" column="author_username"/>
+    <result property="password" column="author_password"/>
+    <result property="email" column="author_email"/>
+    <result property="bio" column="author_bio"/>
+  </accoriation>
+</resultMap>
+同时可以通过columnPrefix复用association，columnPrefix字段会自动拼接到column前面
+<select id="selectBlog" resultMap="blogResult">
+  select
+    B.id            as blog_id,
+    B.title         as blog_title,
+    A.id            as author_id,
+    A.username      as author_username,
+    A.password      as author_password,
+    A.email         as author_email,
+    A.bio           as author_bio,
+    CA.id           as co_author_id,
+    CA.username     as co_author_username,
+    CA.password     as co_author_password,
+    CA.email        as co_author_email,
+    CA.bio          as co_author_bio
+  from Blog B
+  left outer join Author A on B.author_id = A.id
+  left outer join Author CA on B.co_author_id = CA.id
+  where B.id = #{id}
+</select>
+<resultMap id="authorResult" type="Author">
+  <id property="id" column="author_id"/>
+  <result property="username" column="author_username"/>
+  <result property="password" column="author_password"/>
+  <result property="email" column="author_email"/>
+  <result property="bio" column="author_bio"/>
+</resultMap>
+<resultMap id="blogResult" type="Blog">
+  <id property="id" column="blog_id" />
+  <result property="title" column="blog_title"/>
+  <association property="author"
+    resultMap="authorResult" />
+  <association property="coAuthor"
+    resultMap="authorResult"
+    columnPrefix="co_" />
+</resultMap>
+--collection集合
+<resultMap id="blogResult" type="Blog">
+  <collection property="posts" javaType="ArrayList" column="id" ofType="Post" select="selectPostsForBlog"/>
+</resultMap>
+
+<select id="selectBlog" resultMap="blogResult">
+  SELECT * FROM BLOG WHERE ID = #{id}
+</select>
+
+<select id="selectPostsForBlog" resultType="Post">
+  SELECT * FROM POST WHERE BLOG_ID = #{id}
+</select>
+集合和关联差不多，javaType通常会自动识别，ofType表示集合的类型，posts是一个存储Post的集合，上面的例子是嵌套select。
+
+嵌套结果查询
+<select id="selectBlog" resultMap="blogResult">
+  select
+  B.id as blog_id,
+  B.title as blog_title,
+  B.author_id as blog_author_id,
+  P.id as post_id,
+  P.subject as post_subject,
+  P.body as post_body,
+  from Blog B
+  left outer join Post P on B.id = P.blog_id
+  where B.id = #{id}
+</select>
+<resultMap id="blogResult" type="Blog">
+  <id property="id" column="blog_id" />
+  <result property="title" column="blog_title"/>
+  <collection property="posts" ofType="Post">
+    <id property="id" column="post_id"/>
+    <result property="subject" column="post_subject"/>
+    <result property="body" column="post_body"/>
+  </collection>
+</resultMap>
+
+--discriminator鉴别器
+<resultMap id="vehicleResult" type="Vehicle">
+  <id property="id" column="id" />
+  <result property="vin" column="vin"/>
+  <result property="year" column="year"/>
+  <result property="make" column="make"/>
+  <result property="model" column="model"/>
+  <result property="color" column="color"/>
+  <discriminator javaType="int" column="vehicle_type">
+    <case value="1" resultMap="carResult"/>
+    <case value="2" resultMap="truckResult"/>
+    <case value="3" resultMap="vanResult"/>
+    <case value="4" resultMap="suvResult"/>
+  </discriminator>
+</resultMap>
+<resultMap id="carResult" type="Car" extends="vehicleResult">
+  <result property="doorCount" column="door_count" />
+</resultMap>
+上面的例子如果不加extends="vehicleResult"只加载door_count属性，其他属性不加载，想加载外面的属性需要extends="vehicleResult"
+也可以这么写
+<resultMap id="vehicleResult" type="Vehicle">
+  <id property="id" column="id" />
+  <result property="vin" column="vin"/>
+  <result property="year" column="year"/>
+  <result property="make" column="make"/>
+  <result property="model" column="model"/>
+  <result property="color" column="color"/>
+  <discriminator javaType="int" column="vehicle_type">
+    <case value="1" resultType="carResult">
+      <result property="doorCount" column="door_count" />
+    </case>
+    <case value="2" resultType="truckResult">
+      <result property="boxSize" column="box_size" />
+      <result property="extendedCab" column="extended_cab" />
+    </case>
+    <case value="3" resultType="vanResult">
+      <result property="powerSlidingDoor" column="power_sliding_door" />
+    </case>
+    <case value="4" resultType="suvResult">
+      <result property="allWheelDrive" column="all_wheel_drive" />
+    </case>
+  </discriminator>
+</resultMap>
+
+8.自动映射
+当自动映射查询结果时，MyBatis会获取结果中返回的列名，并且在java中查找相同名字的属性（忽略大小写）会把id赋值给ID，
+数据库字段一般是大写单词单词间隔用下划线，java是开头小写后面单词首字母大写，所以自动映射是需要开启驼峰配置mapUnderscoreToCamelCase为true
+开启自动映射后，结果映射依然有效。
+自动映射有三个等级：
+NONE：禁止自动映射，仅使用手动映射的属性进行映射。
+PARTIAL：对除在内部定义了嵌套结果映射以外的属性进行映射。（默认）
+FULL：自动映射所有属性
+无论映射等级是什么都可以在结果映射上面设置autoMapping属性来为指定的结果映射设置启动/禁用自动映射。
+
+9.缓存
+默认情况下，只启用了本地会话缓存，它只对一个会话中的数据进行缓存。要启用全局的二级缓存，只需要在sql映射文件中添加一行。
+<cache/>
+这个标签的效果：
+--映射语句文件中所有select语句的结果将会被缓存。
+--映射语句文件中所有的insert、update和delete语句会刷新缓存
+--缓存会使用最近最少使用算法来清除不需要的缓存。
+--缓存会不定期进行刷新（也就是说没有刷新间隔）
+--缓存会保存列表或对象的1024个引用
+--缓存会被视为读/写缓存，这意味着获取到的对象不共享，可以安全的被调用者修改，而不干扰其他调用者或线程所做的潜在修改
+缓存只作用于cache标签所在的映射文件中的语句。如果混合使用注解和XML文件，在共用接口中的语句不会被默认缓存。需要使用@CacheNamespaceRef注解指定缓存作用域
+<cache
+    eviction="FIFO" 缓存策略
+    flushInterval="60000" 刷新间隔。 属性可以被设置为任意正整数，要注意欲缓存对象的大小和运行环境中可用的内存资源。默认1024
+    size="512" 引用数目，属性可以被设置为任意正整数，要注意欲缓存对象的大小和运行环境中可用的内存资源。默认1024.
+    readOnly="true" 只读属性，可以被设置为true或false。只读的缓存会给所有调用者返回的缓存对象的相同实例。因此这些对象不能被修改。
+    这就提供了客观的性能而可读写的缓存会通过序列化返回缓存对象的拷贝。速度上会慢一些，但是更安全，因此默认是false      />
+上面设置的意思是 测率为FIFO，每隔60秒刷新，最多可以存储结果对象或列表的512个引用，而且返回的对象被认为是只读的，
+因此对它们进行修改可能会在不同线程中的调用者产生冲突。
+可用的清除缓存策略：
+--LRU：最近最少使用，移除最长时间不被使用的对象。（默认）
+--FIFO:先进先出，按对象进入缓存的顺序移除
+--SOFT:软引用，基于垃圾回收器状态和软引用规则移除对象。
+--WEAK：弱引用，更积极地基于垃圾收集器状态和弱引用规则移除对象。
+二级缓存是事务性的。当SqlSession完成并提交时，或者是完成并回滚，但是没有执行flushCache=true的insert/update/delete语句时，缓存会获得更新。
+
+自定义缓存
+<cache type="com.demo.cache"/>
+通过指定类名可以覆盖上面的缓存
+type属性指定的类必须实现 org.apache.ibatis.cache.Cache接口，且提供一个接受String参数作为id的构造器。
+public interface Cache {
+  String getId();
+  int getSize();
+  void putObject(Object key, Object value);
+  Object getObject(Object key);
+  boolean hasKey(Object key);
+  Object removeObject(Object key);
+  void clear();
+}
+
+为了对缓存进行配置，只需要在缓存实现中，添加共有的javaBean属性，然后通过cache元素传递属性值，例如，下面例子将在缓存实现上调用setCacheFile(String file)方法
+<cache type="com.demo.cache">
+  <property name="cacheFile" value="/tmp/my-custom-cache.tmp"/>
+</cache>
+

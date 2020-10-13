@@ -1,0 +1,28 @@
+1.pom文件中加入依赖
+ <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+        </dependency>
+    </dependencies>
+2.启动类加注解
+@EnableEurekaServer
+
+3.在配置文件中
+server:
+  port: 8000
+spring:
+  application:
+    name: eureka-server
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+	  
+server端将registerWithEureka和fetchRegistry配置为false
+
+4.应注意spring-cloud 和 spring-boot 的版本 F版本的spring-cloud无法在springboot2.2.x版本使用。

@@ -1,0 +1,19 @@
+1.SqlSessionFactoryBean
+在基础mybatis中，是通过SqlSessionFactoryBulider来创建SqlSessionFactory,而在mybaits-spring中是用SqlSessionFactoryBean来创建的。
+要创建公场bean，将下面代码放到spring的xml配置文件中
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+</bean>
+SeqSessionFactoryBean实现了spring的FactoryBean接口。
+这意味着由Spring最终创建的bean并不是SqlSessionFactoryBean本身，而是工厂类SqlSessionFactoryBean的getObject（）方法返回的结果。
+这种情况下,Spring将会在应用启动时创建SqlSessionFactory，并使用sqlSessionFactory存储起来。
+等效的java代码如下
+@Bean
+public SqlSessionFactory sqlSessionFactory() {
+  SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+  factoryBean.setDataSource(dataSource());
+  return factoryBean.getObject();
+}
+SqlSessionFactory有一个唯一的必要属性：用于JDBC的DataSource。这可以是任意的DataSource对象，他的配置方法和其他Spring数据库连接一样。
+一个常用的属性是configLocation，它用来指定MyBatis的XML配置文件路径。他在需要修改Mybatis的基础配置非常有用。
+

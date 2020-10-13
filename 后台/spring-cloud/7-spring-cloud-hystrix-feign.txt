@@ -1,0 +1,14 @@
+1.修改配置文件
+feign：
+	hystrix：
+		enabled：true
+2.创建熔断类继承接口
+@Component
+public class HelloServiceHystrix implements HelloService {
+    @Override
+    public String hello(String name) {
+        return name+" error";
+    }
+}
+3.修改接口注解将fallback指向熔断类
+@FeignClient(value = "demo2",fallback = HelloServiceHystrix.class)

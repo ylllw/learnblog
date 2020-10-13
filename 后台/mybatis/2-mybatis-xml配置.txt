@@ -1,0 +1,30 @@
+1.属性（properties）
+<properties resource="org/mybatis/example/config.properties">
+    <property name="username" value="lw">
+    <property name="password" value="123456">
+</properties>
+此处设置后在其他地方可以通过${username}和${password}调用参数.
+可以给参数设置默认值
+<properties resource="org/mybatis/example/config.properties">
+    <property name="username" value="${username}:a">
+    <!--启用默认值特性-->
+    <property name="org.apache.ibtis.parsing.PropertyParser.enable-default-value" value="true">
+</properties>
+2.类型别名（typeAliases）
+为JAVA类设置一个缩写
+<typeAliases>
+  <typeAlias alias="Author" type="domain.blog.Author"/>
+  <typeAlias alias="Blog" type="domain.blog.Blog"/>
+</typeAliases>
+Blog可以代替任何需要使用domain.blog.Blog的位置
+也可以指定包名，MyBatis会在包下面搜索需要的JAVABean
+<typeAliases>
+  <package name="domain.blog"/>
+</typeAliases>
+每一个在包domain.blog中的JavaBean在没有注解的情况下，会用首字母小写的非限定类名作为别名
+比如domain.blog.Author 的别名为 author
+也可以通过注解设置别名
+@Alias("author")
+public class Author {
+    
+}

@@ -1,0 +1,67 @@
+1.v-for
+<div id="app">
+  <ol>
+    <li v-for="site in sites">
+      {{ site.name }}
+    </li>
+  </ol>
+</div>
+ 
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    sites: [
+      { name: 'Runoob' },
+      { name: 'Google' },
+      { name: 'Taobao' }
+    ]
+  }
+})
+</script>
+2.迭代object的value
+<div id="app">
+  <ul>
+    <li v-for="value in object">
+    {{ value }}
+    </li>
+  </ul>
+</div>
+ 
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    object: {
+      name: '菜鸟教程',
+      url: 'http://www.runoob.com',
+      slogan: '学的不仅是技术，更是梦想！'
+    }
+  }
+})
+</script>
+3.迭代object的value和key
+<div id="app">
+  <ul>
+    <li v-for="(value, key) in object">
+    {{ key }} : {{ value }}
+    </li>
+  </ul>
+</div>
+4.迭代object的value、key和index
+<div id="app">
+  <ul>
+    <li v-for="(value, key, index) in object">
+     {{ index }}. {{ key }} : {{ value }}
+    </li>
+  </ul>
+</div>
+5.迭代整数
+<div id="app">
+  <ul>
+    <li v-for="n in 10">
+     {{ n }}
+    </li>
+  </ul>
+</div>
+

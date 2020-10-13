@@ -1,0 +1,19 @@
+1.使用SqlSession
+MyBatis中，可以用SqlSessionFactory创建SqlSession。一旦获得一个session后，可以用它执行映射了的语句，提交或回滚连接，最后不需要的时候可以关闭session。
+MyBatis-Spring中，不需要直接使用SqlSessionFactory，因为Bean可以被注入一个线程安全的SqlSession，他能基于Spring的事务来自动提交、回滚、关闭session。
+2.SqlSessionTemplate
+SqlSessionTemplate是MyBatis-Spring的核心。作为SqlSession的一个实现，这意味着可以使用它无缝代替你代码中已经在使用的SqlSession。
+SqlSessionTemplate是线程安全的，可以被多个DAO或映射器所共享使用。
+当调用sql方法时SqlSessionTemplate将会保证使用的Sqlsession与当前Spring的事务相关。
+此外它管理session的生命周期，包含必要的关闭、提交或回滚。
+另外，他也负责将Mybatis中的异常翻译成spring中的DataAccessExceptions。
+由于模板可以参与到spring事务中，并且是线程安全的，可以供多个映射器类使用，你应该总是用SqlSessionTemplate来替换Mybatis默认的DefaultSqlSession.
+在同一应用中不同类之间混杂使用可能会引起数据一致性问题。
+可以使用SqlSessionFactory作为构造方法的参数来创建SqlSessionTemplate对象。
+<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+  <constructor-arg index="0" ref="sqlSessionFactory" />
+</bean>
+@Bean
+public SqlSessionTemplate sqlSession() throws Exception {
+  return new SqlSessionTemplate(sqlSessionFactory());
+}

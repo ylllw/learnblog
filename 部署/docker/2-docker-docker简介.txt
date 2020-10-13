@@ -1,0 +1,10 @@
+docker 基本概念：
+镜像（Images）：镜像相当与是类
+容器（container）：容器是镜像的实例，实际运行的是容器。
+仓库（Repository）：仓库用于保存镜像
+客户端（client）：客户端通过命令行或其它工具使用dockerSDK与docker的守护进程通信
+主机（Host）：主机是一个物理或虚拟的机器，用于执行docker守护进程和容器。
+
+启动docker
+systemctl start docker
+

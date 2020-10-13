@@ -1,0 +1,93 @@
+1.插值
+文本：<span>{{text}}</span>
+HTML：<div v-html="message"></div>
+属性：<div v-bind:class="{'class1': use}"></div> use为true，该div的class是class1   
+表达式：{{5+5}} {{ok?'yes':'no'}} {{message.split('').reverse().join('')}} 
+<div id="app">
+    <span>{{text}}</span>
+    <div v-html="message"></div>
+    <div v-bind:class="{'class1': use}"></div> 
+    {{5+5}}<br>
+    {{ok?'yes':'no'}}<br>
+    {{message.split('').reverse().join('')}}
+</div>
+    
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    text: 'hello',
+    message: '<h1>菜鸟教程</h1>',
+    use: true,
+    ok: true,
+  }
+})
+</script>
+
+2.指令：带有v-前缀的特殊属性
+v-if ：<span v-if="seen">look</span>
+v-bind ：用来响应式的更新HTML属性 ：<a v-bind:href="url">url</a> 可以缩写为<a :href="url">url</a>
+v-on:用于监听DOM事件 ：<a v-on:click="aclick"></a> 可以缩写为<a @click="aclick"></a>
+修饰符：以.指明的特殊后缀，用于指定一个指令应该以特殊方式绑定，例如.prevent修饰符告诉v-on指令对于触发的事件调用event.preventDefault();
+<div id="app">
+    <span v-if="seen">look</span>
+    <a v-bind:href="url">url</a>
+    <form v-on:submit.prevent="onSubmit"></form>
+</div>
+    
+<script>
+new Vue({
+  el: '#app',
+  data: {
+      seen : true,
+      url : 'http://www.baidu.com'
+  }
+})
+</script>
+
+3.用户输入
+v-model :该指令可以实现数据双向绑定：<input v-model="message">
+<div id="app">
+    <p>{{ message }}</p>
+    <input v-model="message">
+</div>
+    
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    message: 'Runoob!'
+  }
+})
+</script>
+
+4.过滤器
+使用filters可以自定义过滤器。
+<!-- 在两个大括号中 -->
+{{ message | capitalize }}
+
+<!-- 在 v-bind 指令中 -->
+<div v-bind:id="rawId | formatId"></div>
+<!--可以串联-->
+{{ message | filterA | filterB }}
+<!--可以接收参数-->
+{{ message | filterA('arg1', arg2) }}
+<div id="app">
+  {{ message | capitalize }}
+</div>
+    
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    message: 'runoob'
+  },
+  filters: {
+    capitalize: function (value) {
+      if (!value) return ''
+      value = value.toString()
+      return value.charAt(0).toUpperCase() + value.slice(1)
+    }
+  }
+})
+</script>

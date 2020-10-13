@@ -1,0 +1,59 @@
+1.创建容器
+docker run -it ubuntu /bin/bash
+-i :交互式操作
+-t :终端
+-d :后台运行
+ubuntu :镜像名
+/bin/bash：命令，这里我们希望有个交互式Shell，因此使用/bin/bash
+
+2.查看容器
+docker ps -a：查看所有容器
+docker ps : 查看运行中容器
+
+3.启动、重启、停止容器
+docker start b750bbbcfd88 
+docker restart b750bbbcfd88
+docker stop b750bbbcfd88
+
+4.进入容器
+在创建容器时 加-d会后台运行，此时想进入容器要使用下面的命令
+docker attach
+docker exec 推荐使用这个，因为这个在退出容器终端时不会导致容器停止。
+docker exec -it 243c32535da7 /bin/bash
+
+5.导入和导出容器
+docker export 1e560faca > ubuntu.tar :导出
+cat /docker/ubuntu.tar | docker import - test/ubuntu:v1  :导入
+
+6.删除容器
+docker rm -f 1e560faca 删除容器
+docker container prune 可以清除掉所有处于终止状态的容器
+
+7.运行一个web应用
+docker pull training/webapp
+docker run -d -P training/webapp python app.py
+-d 后台运行
+-P 将容器内部使用的网络端口随机映射到我们使用的主机
+python app.py 设置command的内容
+ports
+0.0.0.0:32769->5000/tcp
+将本机的32769端口映射到容器的5000端口
+可以通过-p设置映射端口
+docker run -d -p 5000:5000 training/webapp python app.py
+网络端口的快捷方式
+docker port bf08b7f2cd89 通过该方式可以快捷查看容器端口
+
+8.查看WEB应用日志
+docker logs -f 1e560faca 通过该命令查看容器内部的标准输出。
+
+9.查看WEB应用程序容器的进程
+docker top 1e560faca
+
+10.检查WEB应用程序
+使用docker inspect 来查看docker的底层信息。他会返回个JSON文件记录着docker容器的配置和状态信息
+
+
+
+
+    
+

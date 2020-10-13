@@ -1,0 +1,45 @@
+1.pom文件中导入
+<dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+        </dependency>
+    </dependencies>
+2.配置文件中配置eureka-service地址
+server:
+  port: 8003
+
+spring:
+  application:
+    name: demo3-ribbon
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8000/eureka/
+	  
+3.启动类加注解
+@EnableEurekaClient
+@EnableDiscoveryClient
+注入RestTemplate类
+	@Bean
+    @LoadBalanced
+    RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+4.Service层注入RestTemplate
+@Autowired
+RestTemplate restTemplate;
+方法内调用
+restTemplate.getForObject("http://SERVICE-HI/hi?name="+name,String.class);
+
+5.controller层调用service层 

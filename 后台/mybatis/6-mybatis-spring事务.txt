@@ -1,0 +1,40 @@
+1.Mybatis事务
+Mybatis事务允许Mybatis参与到Spring的事务管理中。而不是给MyBatiscc创建一个新的专用事务管理器，
+MyBatis-Spring借助了spring中的DataSourceTransactionManager来实现事务管理。
+一旦配置好spring事务管理器，就可以在spring中按照平时的方式来配置事务。并且支持@Transactional注解和AOP风格的配置。
+在事务处理期间一个单独的SqlSession对象将会被创建和使用。当事务完成时，这个session会以合适的方式提交或回滚。
+
+2.标准配置：要开启Spring的事务处理功能，在spring的配置文件中创建一个DataSourceTransactionManager
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+  <constructor-arg ref="dataSource" />
+</bean>
+@Bean
+public DataSourceTransactionManager transactionManager() {
+  return new DataSourceTransactionManager(dataSource());
+}
+需要注意，事务管理器的DataSource和SqlSessionFactory的DataSource必须是同一个数据源。
+3.交由容器管理事务
+如果正在使用一个容器并想让spring参与到容器管理事务的过程中，那么spring应该被设置为使用JtaTranscationManager或由容器指定的一个子类作为事务管理器。
+最简单的方式是使用spring的事务命名空间或使用JtaTransactionManagerFactoryBean。
+<tx:jta-transaction-manager />
+@Bean
+public JtaTransactionManager transactionManager() {
+  return new JtaTransactionManagerFactoryBean().getObject();
+}
+在这个配置中,Mybatis将会和其他由容器管理事务配置的Spring事务资源一样。Spring会自动使用任何一个存在的容器事务管理器，并注入一个SqlSession。
+如果没有正在进行的事务，而是基于事务配置需要一个新的事物的时候，Spring会开启一个新的由容器管理的事务。
+注意，如果要使用容器管理的事务，不使用spring的事务管理，那就不能配置任何spring事务管理器。
+必须配置SqlSessionFactoryBean以使用基本的myabtis的ManagedTransactionFactory。
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+  <property name="transactionFactory">
+    <bean class="org.apache.ibatis.transaction.managed.ManagedTransactionFactory" />
+  </property>  
+</bean>
+@Bean
+public SqlSessionFactory sqlSessionFactory() {
+  SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+  factoryBean.setDataSource(dataSource());
+  factoryBean.setTransactionFactory(new ManagedTransactionFactory());
+  return factoryBean.getObject();
+}
